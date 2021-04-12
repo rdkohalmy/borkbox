@@ -1,0 +1,45 @@
+version: "3"
+services:
+  wordpress:
+    build:
+      context: ./wordpress
+    restart: unless-stopped
+    enviroment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_DB_NAME: ${MYSQL_DATABASE}
+    volumes:
+      - ./wordpress/data:/var/www/html
+    netowrks:
+      - web
+      - backend
+    depends_on:
+      - db
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.htls.rule=Host('borkbox.org')
+      - "traefik.http.routers.htls.entypoints=web"
+  db:
+    image: mariadb
+    restart: unless-stopped
+    enviroment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      ./db:/var/lib/mysql
+    networks:
+      - backend
+
+  redis:
+    image: redis:6
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+    entypoint: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
