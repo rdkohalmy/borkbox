@@ -1,0 +1,11 @@
+{
+    # acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+a.{$MY_DOMAIN} {
+    reverse_proxy :80
+}
+
+b.{$MY_DOMAIN} {
+    reverse_proxy nginx:80
+}
